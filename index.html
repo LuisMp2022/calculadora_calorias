@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Calorías</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+            color: #444;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+        }
+        label {
+            margin-top: 15px;
+            font-weight: bold;
+            display: block;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .result h2 {
+            color: #007bff;
+        }
+        .macros {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .motivation {
+            margin-top: 20px;
+            font-style: italic;
+            color: #555;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Calculadora de Calorías</h1>
+    </header>
+    <div class="container">
+        <form id="calorieForm">
+            <label for="sex">Sexo:</label>
+            <select id="sex" name="sex">
+                <option value="male">Hombre</option>
+                <option value="female">Mujer</option>
+            </select>
+            
+            <label for="weight">Peso (kg):</label>
+            <input type="number" id="weight" name="weight" required>
+            
+            <label for="height">Altura (cm):</label>
+            <input type="number" id="height" name="height" required>
+            
+            <label for="age">Edad (años):</label>
+            <input type="number" id="age" name="age" required>
+            
+            <label for="activity">Nivel de Actividad:</label>
+            <select id="activity" name="activity">
+                <option value="sedentary">Sedentario</option>
+                <option value="light">Ligero</option>
+                <option value="moderate">Moderado</option>
+                <option value="active">Activo</option>
+                <option value="very-active">Muy Activo</option>
+                <option value="extremely-active">Extremadamente Activo</option>
+            </select>
+
+            <label for="goal">Objetivo:</label>
+            <select id="goal" name="goal">
+                <option value="maintain">Mantener el peso</option>
+                <option value="lose">Bajar de peso</option>
+                <option value="gain">Subir de peso</option>
+            </select>
+
+            <button type="button" class="button" onclick="calculateCalories()">Calcular</button>
+        </form>
+        <div class="result" id="result" style="display: none;">
+            <h2>Resultados:</h2>
+            <p id="maintenanceCalories"></p>
+            <div id="deficitResults" style="display: none;">
+                <h3>Tus calorías para estar en déficit calórico:</h3>
+                <ul>
+                    <li id="lightDeficit"></li>
+                    <li id="moderateDeficit"></li>
+                    <li id="aggressiveDeficit"></li>
+                    <li id="veryAggressiveDeficit"></li>
+                </ul>
+            </div>
+            <div id="surplusResults" style="display: none;">
+                <h3>Tus calorías para estar en superávit calórico:</h3>
+                <ul>
+                    <li id="lightSurplus"></li>
+                    <li id="moderateSurplus"></li>
+                    <li id="aggressiveSurplus"></li>
+                    <li id="veryAggressiveSurplus"></li>
+                </ul>
+            </div>
+            <div class="macros" id="macros"></div>
+        </div>
+        <div class="motivation" id="motivation" style="display: none;"></div>
+    </div>
+    <script>
+        const motivationalQuotes = [
+              "¡Cada bocado cuenta, elige sabiamente!",
+    "¡El cambio comienza en ti, mantente enfocado!",
+    "Recuerda, la disciplina es la clave del éxito.",
+    "No se trata de ser perfecto, se trata de esforzarse.",
+    "¡Tu esfuerzo de hoy es el éxito de mañana!",
+    "Cada pequeño paso te acerca a tu meta.",
+    "¡La comida es solo un combustible, no un consuelo!",
+    "La perseverancia es el camino hacia el éxito.",
+    "Cree en ti mismo y todo será posible.",
+    "No te detengas hasta que estés orgulloso.",
+    "Hoy es el primer día del resto de tu vida.",
+    "Tus límites son solo un espejismo.",
+    "Cada día es una nueva oportunidad.",
+    "El esfuerzo de hoy es la recompensa de mañana.",
+    "Los grandes logros requieren tiempo.",
+    "Los hábitos saludables son un viaje, no un destino.",
+    "Lo que comes hoy afecta cómo te sientes mañana.",
+    "Los cambios pequeños hacen una gran diferencia.",
+    "Tu salud es tu mayor riqueza.",
+    "La única mala comida es la que no se disfruta.",
+    "La felicidad está en el viaje, no en el destino.",
+    "Cada día cuenta, hazlo valer.",
+    "El dolor es temporal, el orgullo es para siempre.",
+    "La mejor inversión que puedes hacer es en ti mismo.",
+    "No se trata de tener tiempo, se trata de hacer tiempo.",
+    "La verdadera motivación viene de dentro.",
+    "Hazlo por ti, no por nadie más.",
+    "Cada decisión cuenta hacia tu objetivo.",
+    "Cambia tus pensamientos y cambiarás tu mundo.",
+    "Las metas no se cumplen, se trabajan.",
+    "Eres más fuerte de lo que piensas.",
+    "No te compares con los demás, compite contigo mismo.",
+    "La vida es un maratón, no una carrera de velocidad.",
+    "Sé el cambio que quieres ver en el mundo.",
+    "Haz algo hoy que tu futuro yo te agradecerá.",
+    "No cuentes los días, haz que los días cuenten.",
+    "Tu cuerpo puede soportar casi cualquier cosa, es tu mente la que debes convencer.",
+    "Cree que puedes y ya estás a medio camino.",
+    "La autodisciplina es el puente entre las metas y los logros.",
+    "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
+    "Nunca es tarde para comenzar un nuevo capítulo.",
+    "Las oportunidades no son producto de la casualidad, son resultado del trabajo.",
+    "La felicidad se encuentra en el equilibrio.",
+    "Tú decides qué es lo mejor para ti.",
+    "Haz de tu vida una obra maestra.",
+    "La confianza en uno mismo es el primer secreto del éxito.",
+    "Cuando sientas que vas a rendirte, recuerda por qué empezaste.",
+    "El único modo de hacer un gran trabajo es amar lo que haces.",
+    "No dejes que el miedo te detenga.",
+    "Cada éxito comienza con la decisión de intentarlo.",
+    "No te preocupes por fracasar, preocúpate por no intentarlo.",
+    "La motivación te impulsa a empezar, el hábito te mantiene en marcha.",
+    "No busques la felicidad, crea la felicidad.",
+    "Las dificultades a menudo preparan a las personas comunes para un destino extraordinario.",
+    "La mentalidad positiva es la clave para la transformación.",
+    "El progreso, no la perfección, es lo que importa.",
+    "No te rindas, cada intento te acerca más a tu meta.",
+    "Haz lo que puedas, con lo que tengas, donde estés.",
+    "Aprovecha cada momento, ¡es tu vida!",
+    "Nunca subestimes el poder de una decisión.",
+    "Tu actitud determina tu altitud.",
+    "Siempre puedes encontrar una razón para sonreír.",
+    "El éxito no se mide por lo que logras, sino por los obstáculos que superas.",
+    "La salud es un estado de completo bienestar físico, mental y social.",
+    "Mantén tus ojos en las estrellas y tus pies en la tierra.",
+    "Cada día es una nueva oportunidad para ser mejor.",
+    "El futuro pertenece a quienes creen en la belleza de sus sueños.",
+    "Las mejores cosas en la vida requieren esfuerzo.",
+    "El verdadero cambio comienza cuando decides actuar.",
+    "Desafíate a ti mismo y verás lo que eres capaz de lograr.",
+    "Recuerda que eres capaz de más de lo que piensas.",
+    "Los sueños no tienen fecha de caducidad.",
+    "La fe en uno mismo es el primer paso para el éxito.",
+    "Los grandes resultados requieren grandes ambiciones.",
+    "Nunca es demasiado tarde para cambiar tu historia.",
+    "La vida es un 10% lo que me sucede y un 90% cómo reacciono a ello.",
+    "Recuerda que cada día es una nueva oportunidad.",
+    "No permitas que tus miedos te detengan.",
+    "Aliméntate de cosas que te hagan sentir bien.",
+    "La vida es un viaje, no un destino.",
+    "Las decisiones de hoy son los resultados de mañana.",
+    "Sigue adelante, no mires atrás.",
+    "Lo que piensas, eso eres.",
+    "Cada paso cuenta, no importa cuán pequeño sea.",
+    "No es el tiempo, es la dedicación lo que importa.",
+    "Cualquier cosa es posible si tienes la determinación.",
+    "La única manera de hacer un gran trabajo es amar lo que haces.",
+    "La vida es corta, come sano y sonríe.",
+    "No esperes por el momento perfecto, toma el momento y hazlo perfecto.",
+    "Tus acciones de hoy son tus resultados de mañana.",
+    "Tu vida es tu mensaje para el mundo, ¡hazlo inspirador!",
+    "Enfrenta tus miedos, ellos son tus mayores maestros.",
+    "Cada día es una nueva oportunidad para empezar de nuevo.",
+  "Cree en el poder de tus sueños.",
+    "El éxito es el resultado de la preparación y la perseverancia.",
+    "No importa cuán despacio vayas, siempre y cuando no te detengas.",
+    "Cada día es una nueva oportunidad para ser mejor.",
+    "Toma el control de tu salud, es tu responsabilidad.",
+    "El esfuerzo de hoy es la recompensa de mañana.",
+    "La disciplina es el camino hacia el éxito.",
+    "El primer paso hacia el éxito es la acción.",
+    "No esperes por las oportunidades, créalas.",
+    "Aprovecha cada día al máximo.",
+    "Los grandes cambios requieren tiempo y esfuerzo.",
+    "Cada paso hacia tu objetivo es un paso más cerca.",
+    "La perseverancia te llevará a donde quieres ir.",
+    "No te compares con los demás, cada uno tiene su propio camino.",
+    "La mentalidad positiva es el primer paso hacia el cambio.",
+    "Los sueños se hacen realidad si tienes el coraje de perseguirlos.",
+    "Cada elección cuenta, elige sabiamente.",
+    "El éxito no se trata de ser mejor que otros, se trata de ser mejor que ayer.",
+    "Tus pensamientos crean tu realidad, elige bien.",
+    "La salud es un estado de bienestar integral.",
+    "Las dificultades son oportunidades disfrazadas.",
+    "El progreso se logra un paso a la vez.",
+    "La clave es seguir adelante, sin importar los obstáculos.",
+    "No dejes que el miedo te detenga.",
+    "Los buenos hábitos son el camino hacia el éxito.",
+    "Sé valiente y da el primer paso.",
+    "Hoy es el primer día del resto de tu vida.",
+    "Lo que no te mata, te hace más fuerte.",
+    "Recuerda, el cambio comienza en ti.",
+    "Los resultados no son inmediatos, pero valen la pena.",
+    "La vida es un viaje, disfruta del proceso.",
+    "Tu esfuerzo hoy te llevará a la felicidad mañana.",
+    "Cada pequeño paso cuenta hacia tu meta final.",
+    "El cambio es difícil al principio, complicado en el medio y hermoso al final.",
+    "Las metas son sueños con fechas límite.",
+    "No te detengas hasta que estés orgulloso.",
+    "Hazlo por ti mismo, no por nadie más.",
+    "La autoconfianza es el primer secreto del éxito.",
+    "Nunca es tarde para comenzar a vivir la vida que deseas.",
+    "Lo importante es que sigas avanzando.",
+    "Cada día es una nueva oportunidad para cambiar tu vida.",
+    "El éxito es una serie de pequeños esfuerzos repetidos día tras día.",
+    "El secreto del cambio es enfocar toda tu energía no en luchar contra lo viejo, sino en construir lo nuevo.",
+    "Las metas son el primer paso hacia la realización de tus sueños.",
+    "Tú tienes el poder de cambiar tu historia.",
+    "Si puedes soñarlo, puedes hacerlo.",
+    "La felicidad no es algo hecho, viene de tus propias acciones.",
+    "Los sueños no funcionan a menos que tú trabajes en ellos.",
+    "No importa cuántas veces caigas, lo importante es levantarte.",
+    "Las cosas buenas vienen a aquellos que esperan, pero solo las cosas mejores vienen a aquellos que salen a conseguirlas.",
+    "La vida es corta, haz que cada día cuente.",
+    "No te rindas, la victoria puede estar a la vuelta de la esquina.",
+    "El cambio no es fácil, pero es necesario.",
+    "La única forma de hacer un gran trabajo es amar lo que haces.",
+    "El viaje de mil millas comienza con un solo paso.",
+    "Los obstáculos son esas cosas espantosas que ves cuando apartas la vista de tu meta.",
+    "No cuentes los días, haz que los días cuenten.",
+    "Si no te desafías, no te cambias.",
+    "Cada fracaso es una oportunidad para comenzar de nuevo con más inteligencia.",
+    "Recuerda, eres más fuerte de lo que crees.",
+    "La única forma de hacer algo genial es amar lo que haces.",
+    "Las metas son el primer paso hacia el logro.",
+    "Cada día es una nueva oportunidad para crecer.",
+    "No dejes que nadie te diga que no puedes hacer algo.",
+    "El momento adecuado es ahora.",
+    "Tus sueños son posibles, así que persíguelos.",
+    "Cada paso que tomes es una victoria.",
+    "El futuro pertenece a quienes creen en la belleza de sus sueños.",
+    "Hazlo con pasión o no lo hagas en absoluto.",
+    "La salud es una inversión, no un gasto.",
+    "No dejes que el pasado te defina.",
+    "Siempre hay una razón para sonreír.",
+    "La autocompasión es la clave para el bienestar.",
+    "Las cosas buenas toman tiempo.",
+    "No importa cuán lejos estés, siempre puedes dar un paso más.",
+    "La mente es un poderoso aliado.",
+    "Si te caes, levántate y sigue adelante.",
+    "Cada día es una nueva oportunidad para ser el mejor.",
+    "La vida es como andar en bicicleta, para mantener el equilibrio, debes seguir adelante.",
+    "No dejes que la inseguridad te detenga.",
+    "Cada esfuerzo cuenta, no importa cuán pequeño sea.",
+    "Los grandes resultados provienen de grandes esfuerzos.",
+    "La clave del éxito es comenzar antes de estar listo.",
+    "Tu actitud determina tu altitud.",
+    "Lo que piensas, eso eres.",
+    "El cambio es la única constante en la vida.",
+    "No busques la felicidad, crea la felicidad.",
+    "Si quieres cambiar el mundo, cámbiate a ti mismo.",
+    "La verdadera fortaleza se encuentra en la vulnerabilidad.",
+    "Nunca te rindas, cada intento es una oportunidad.",
+    "Eres el arquitecto de tu propia vida.",
+    "No dejes que el miedo decida tu futuro.",
+    "Cada fracaso es un paso hacia el éxito.",
+    "Tú tienes el control de tu vida.",
+    "Hazlo por ti, no por nadie más.",
+    "El éxito no es la clave de la felicidad, la felicidad es la clave del éxito.",
+    "Cada día es una nueva oportunidad para brillar.",
+    "El primer paso es siempre el más difícil.",
+    "No te compares con los demás, cada uno tiene su propio camino.",
+    "La vida es una aventura, disfrútala.",
+    "La paciencia es un ingrediente esencial para el éxito.",
+    "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
+    "Recuerda, eres capaz de más de lo que imaginas.",
+    "La mente es todo, lo que piensas, eso te conviertes.",
+    "Cada desafío es una oportunidad para crecer.",
+    "La vida es un regalo, aprovecha cada momento.",
+    "Las acciones hablan más que las palabras.",
+    "La única forma de fallar es no intentarlo.",
+    "No esperes por el momento perfecto, toma el momento y hazlo perfecto.",
+    "Tu vida es tu historia, hazla inspiradora.",
+    "El futuro es tuyo, así que hazlo brillante.",
+    "Cada día es una nueva oportunidad para hacer un cambio positivo.",
+    "El éxito es el resultado de la preparación y la determinación.",
+    "Haz lo que amas, ama lo que haces.",
+    "Las metas son solo el comienzo de un gran viaje.",
+    "No te detengas, cada paso cuenta.",
+    "Siempre busca lo positivo en cada situación.",
+    "La única manera de hacer un gran trabajo es amar lo que haces.",
+    "El progreso se logra un paso a la vez.",
+    "Recuerda, no estás solo en este camino.",
+    "La autocompasión es el primer paso hacia el bienestar.",
+    "Cada pequeño logro es un gran paso hacia el éxito.",
+    "Cree en ti mismo y todo será posible.",
+    "El éxito se mide por lo que superas, no por lo que logras.",
+    "No te rindas, lo mejor está por venir.",
+    "El cambio comienza en ti, así que da el primer paso.",
+    "El éxito es el resultado de tus decisiones.",
+    "Cada día es una nueva oportunidad para cambiar tu vida.",
+    "Hazlo por ti mismo, no por nadie más.",
+    "El futuro pertenece a quienes creen en la belleza de sus sueños.",
+    "Siempre sigue adelante, nunca mires atrás.",
+    "Cada paso cuenta, no importa cuán pequeño sea.",
+    "La disciplina es el puente entre las metas y los logros.",
+    "Cree en ti mismo y estarás a medio camino.",
+    "El esfuerzo de hoy es la recompensa de mañana.",
+    "No busques la felicidad, crea la felicidad.",
+    "La mente es un poderoso aliado, úsala a tu favor.",
+    "Cada día es una nueva oportunidad para ser el mejor.",
+    "No dejes que el miedo te detenga, sé valiente.",
+    "Haz lo que amas y nunca tendrás que trabajar un día en tu vida.",
+    "El éxito no es el final, el fracaso no es fatal, lo que cuenta es el valor para continuar.",
+    "La perseverancia es el camino hacia el éxito.",
+    "La salud es un estado de completo bienestar físico, mental y social.",
+    "El único modo de hacer un gran trabajo es amar lo que haces.",
+    "La vida es un viaje, disfruta del proceso.",
+    "Los sueños se hacen realidad si tienes el coraje de perseguirlos.",
+    "Cada decisión cuenta, elige sabiamente.",
+    "Eres más fuerte de lo que piensas, cree en ti mismo.",
+    "No te rindas, la victoria puede estar a la vuelta de la esquina.",
+    "El esfuerzo de hoy es el éxito de mañana.",
+    "La disciplina es la clave para lograr tus objetivos.",
+    "Cada pequeño paso cuenta hacia tu meta final.",
+    "No dejes que tus miedos te detengan, enfrenta tus desafíos.",
+    "Cree en el poder de tus sueños.",
+    "El éxito es el resultado de la preparación y la determinación.",
+    "Cada día es una nueva oportunidad para hacer un cambio positivo.",
+    "Nunca es tarde para empezar a vivir la vida que deseas.",
+    "Tú decides tu destino, así que elige sabiamente.",
+    "No te compares con los demás, cada uno tiene su propio camino.",
+    "La vida es un viaje, no un destino, así que disfruta el trayecto.",
+    "Cada día es una nueva oportunidad para crecer.",
+    "La autoconfianza es el primer secreto del éxito.",
+    "No importa cuántas veces caigas, lo importante es levantarte.",
+    "Cada esfuerzo cuenta, no importa cuán pequeño sea.",
+    "La perseverancia te llevará a donde quieres ir.",
+    "No busques la felicidad, crea la felicidad.",
+    "El cambio es difícil, pero es necesario.",
+    "Recuerda que eres capaz de más de lo que crees.",
+    "Cada desafío es una oportunidad para crecer.",
+    "La vida es corta, haz que cada día cuente.",
+    "Siempre busca lo positivo en cada situación.",
+    "Nunca te rindas, cada intento es una oportunidad.",
+    "Eres el arquitecto de tu propia vida.",
+    "Hazlo por ti, no por nadie más.",
+    "El éxito no es la clave de la felicidad, la felicidad es la clave del éxito.",
+    "Cada día es una nueva oportunidad para brillar.",
+    "La clave del éxito es empezar antes de estar listo."
+        ];
+
+        function calculateCalories() {
+            var weight = parseFloat(document.getElementById('weight').value);
+            var height = parseFloat(document.getElementById('height').value);
+            var age = parseFloat(document.getElementById('age').value);
+            var sex = document.getElementById('sex').value;
+            var activityLevel = document.getElementById('activity').value;
+            var goal = document.getElementById('goal').value;
+
+            var s = (sex === 'male') ? 5 : -16;
+            var tmb = 10 * weight + 6.25 * height - 5 * age + s;
+
+            var activityMultipliers = {
+                'sedentary': 1.2,
+                'light': 1.375,
+                'moderate': 1.55,
+                'active': 1.725,
+                'very-active': 1.9,
+                'extremely-active': 2.2
+            };
+
+            var multiplier = activityMultipliers[activityLevel];
+            var maintenanceCalories = tmb * multiplier;
+
+            document.getElementById('maintenanceCalories').innerText = 'Calorías para mantener el peso: ' + Math.round(maintenanceCalories) + ' kcal/día';
+
+            if (goal === 'lose') {
+                var lightDeficit = maintenanceCalories - 250;
+                var moderateDeficit = maintenanceCalories - 500;
+                var aggressiveDeficit = maintenanceCalories - 750;
+                var veryAggressiveDeficit = maintenanceCalories - 1000;
+
+                document.getElementById('lightDeficit').innerText = 'Déficit ligero: ' + Math.round(lightDeficit) + ' kcal/día';
+                document.getElementById('moderateDeficit').innerText = 'Déficit moderado: ' + Math.round(moderateDeficit) + ' kcal/día';
+                document.getElementById('aggressiveDeficit').innerText = 'Déficit agresivo: ' + Math.round(aggressiveDeficit) + ' kcal/día';
+                document.getElementById('veryAggressiveDeficit').innerText = 'Déficit muy agresivo: ' + Math.round(veryAggressiveDeficit) + ' kcal/día';
+
+                document.getElementById('deficitResults').style.display = 'block';
+                document.getElementById('surplusResults').style.display = 'none';
+            } else if (goal === 'gain') {
+                var lightSurplus = maintenanceCalories + 250;
+                var moderateSurplus = maintenanceCalories + 500;
+                var aggressiveSurplus = maintenanceCalories + 750;
+                var veryAggressiveSurplus = maintenanceCalories + 1000;
+
+                document.getElementById('lightSurplus').innerText = 'Superávit ligero: ' + Math.round(lightSurplus) + ' kcal/día';
+                document.getElementById('moderateSurplus').innerText = 'Superávit moderado: ' + Math.round(moderateSurplus) + ' kcal/día';
+                document.getElementById('aggressiveSurplus').innerText = 'Superávit agresivo: ' + Math.round(aggressiveSurplus) + ' kcal/día';
+                document.getElementById('veryAggressiveSurplus').innerText = 'Superávit muy agresivo: ' + Math.round(veryAggressiveSurplus) + ' kcal/día';
+
+                document.getElementById('surplusResults').style.display = 'block';
+                document.getElementById('deficitResults').style.display = 'none';
+            } else {
+                document.getElementById('deficitResults').style.display = 'none';
+                document.getElementById('surplusResults').style.display = 'none';
+            }
+
+            // Mostrar frase motivacional
+            var randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+            document.getElementById('motivation').innerText = motivationalQuotes[randomIndex];
+            document.getElementById('motivation').style.display = 'block';
+
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
